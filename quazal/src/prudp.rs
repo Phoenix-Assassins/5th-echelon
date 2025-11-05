@@ -78,7 +78,7 @@ where
 {
     /// Creates a new PRUDP server.
     #[must_use]
-    pub fn new(logger: slog::Logger, ctx: &Context, registry: StreamHandlerRegistry<T>) -> Server<ECH, DH, T> {
+    pub fn new(logger: slog::Logger, ctx: &Context, registry: StreamHandlerRegistry<T>) -> Server<'_, ECH, DH, T> {
         let client_registry = ClientRegistry {
             clients: HashMap::default(),
             connection_id_session_ids: HashMap::default(),
@@ -145,7 +145,7 @@ where
                 if let Err(e) = packet.validate(self.ctx, packet_data) {
                     error!(logger, "Invalid packet received: {:?}", packet; "error" =>  %e);
                     continue;
-                };
+                }
 
                 self.handle_packet(&logger.new(o!("seq" => packet.sequence, "session" => packet.session_id)), packet, client);
             }
@@ -291,11 +291,13 @@ where
     fn handle_connect(&mut self, logger: &Logger, mut packet: QPacket, client: SocketAddr) {
         debug!(logger, "Handling connect packet");
         let Some(signature) = packet.conn_signature else {
-            todo!("deny connect. no signature");
+            error!(logger, "Client {:x} did not provide a connection signature. This should not happen", packet.signature);
+            return;
         };
 
         let Some(mut ci) = self.new_clients.remove(&packet.signature) else {
-            todo!("deny connect. no client");
+            warn!(logger, "Unknown client {:x} tried to connect. Ignoring the attempt", packet.signature);
+            return;
         };
         ci.client_signature = Some(signature);
         ci.server_session = rand::random();

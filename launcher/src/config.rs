@@ -16,7 +16,7 @@ use crate::games::GameVersion;
 // Default port numbers for various services.
 pub const RPC_DEFAULT_PORT: u16 = 50051;
 pub const QUAZAL_DEFAULT_PORT: u16 = 21126;
-pub const QUAZAL_DEFAULT_LOCAL_PORT: u16 = 3128;
+pub const QUAZAL_DEFAULT_LOCAL_PORT: u16 = 3074;
 pub const P2P_DEFAULT_PORT: u16 = 13000;
 
 /// Represents the version of the UI to use.
@@ -43,7 +43,7 @@ impl Profile {
     ///
     /// If a URL is not explicitly configured, it constructs a default URL
     /// using the server address and the default RPC port.
-    pub fn api_server_url(&self) -> Cow<url::Url> {
+    pub fn api_server_url(&self) -> Cow<'_, url::Url> {
         self.api_server_url.as_ref().map(Cow::Borrowed).unwrap_or_else(|| {
             Cow::Owned(
                 format!("http://{}:{}", if self.server.is_empty() { "localhost" } else { &self.server }, RPC_DEFAULT_PORT)
